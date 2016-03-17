@@ -10,13 +10,13 @@ public:
     	std::vector<int> answer;
         std::unordered_map<int, int> index;
         int i = 0;
-        for (std::vector<int>::iterator it = nums.begin(); it != nums.end(); it ++) {
-        	index[*it] = i;
+        for (int current : nums) {
+        	index[current] = i;
         	i ++;
         }
         i = 0;
-        for (std::vector<int>::iterator it = nums.begin(); it != nums.end(); it ++) {
-        	int diff = target - *it;
+        for (int current : nums) {
+        	int diff = target - current;
         	std::unordered_map<int, int>::iterator result = index.find(diff);
         	if (result != index.end() && i != result->second) {
         		answer.push_back(i);
@@ -35,7 +35,7 @@ int main() {
 		test.push_back(i*2);
 	}
 	Solution sol;
-	test = sol.twoSum(test, 36);
+	test = sol.twoSum(test, 34);
 	for (int i : test) {
 		std::cout << i << std::endl;
 	}
