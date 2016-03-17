@@ -39,5 +39,4 @@ int main() {
 	for (int i : test) {
 		std::cout << i << std::endl;
 	}
-	return 0;
 }
