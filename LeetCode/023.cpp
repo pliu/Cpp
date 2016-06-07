@@ -1,7 +1,6 @@
 // https://leetcode.com/problems/merge-k-sorted-lists/
 
 #include <iostream>
-#include <vector>
 #include <queue>
 #include <cstdlib>
 
