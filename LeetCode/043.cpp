@@ -5,7 +5,7 @@
 
 class Solution {
 public:
-    string multiply(std::string num1, std::string num2) {
+    std::string multiply(std::string num1, std::string num2) {
 
     }
 };

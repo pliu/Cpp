@@ -15,7 +15,6 @@ public:
         while (length > 0) {
             int right = x % 10;
             int left = (x / (int)pow(10, length)) % 10;
-            std::cout << x << " " << left << " " << right << " " << length << std::endl;
             if (right != left) {
                 return false;
             }
