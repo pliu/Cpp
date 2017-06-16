@@ -44,7 +44,7 @@ public:
 
     void delete_item(const void *key, uint32_t len);
 
-    const uint16_t *get_bucket_sizes();
+    uint16_t *get_bucket_sizes();
 
 private:
     Node **bucket_array;

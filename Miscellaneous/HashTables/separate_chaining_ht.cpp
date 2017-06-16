@@ -59,7 +59,9 @@ bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void 
     printf("add_item %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
 #endif
 
-    if (results[0] != NULL) {
+    Node* res = results[0];
+    delete results;
+    if (res != NULL) {
         return false;
     }
     Node *node = new Node(key, key_len, value, value_len);
@@ -79,8 +81,10 @@ void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void 
     printf("set_item %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
 #endif
 
-    if (results[0] != NULL) {
-        results[0]->replace(key, key_len, value, value_len);
+    Node* res = results[0];
+    delete results;
+    if (res != NULL) {
+        res->replace(key, key_len, value, value_len);
         return;
     }
     Node *node = new Node(key, key_len, value, value_len);
@@ -99,10 +103,12 @@ const void *SeparateChainingHt::get_item(const void *key, uint32_t len) const {
 #endif
 
     Node **results = find_item(bucket_array, bucket_index, key, len);
-    if (results[0] == NULL) {
+    Node *ret = results[0];
+    delete results;
+    if (ret == NULL) {
         return NULL;
     }
-    return results[0]->value;
+    return ret->value;
 }
 
 void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
@@ -122,6 +128,7 @@ void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
         delete results[0];
         num_items--;
     }
+    delete results;
 }
 
 void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
@@ -178,7 +185,7 @@ Node **SeparateChainingHt::find_item(Node **bucket_array, uint32_t bucket_index,
     return ret;
 }
 
-const uint16_t *SeparateChainingHt::get_bucket_sizes() {
+uint16_t *SeparateChainingHt::get_bucket_sizes() {
     uint16_t *bucket_sizes = new uint16_t[num_buckets]();
     for (uint32_t i = 0; i < num_buckets; i++) {
         Node *node_ptr = bucket_array[i];

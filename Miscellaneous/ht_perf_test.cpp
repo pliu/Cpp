@@ -8,15 +8,20 @@
 
 int main() {
     SeparateChainingHt *scht = new SeparateChainingHt(5, 1.5);
-    int negatives = 0;
-    for (int i = 0; i < 1000000; i++) {
+    int hits = 0;
+    for (int i = 0; i < 10000000; i++) {
         char *key = random_string(5);
         char *value = random_string(10);
-        if (!scht->add_item(key, 5, value, 10)) {
-            negatives++;
-        }
+        scht->add_item(key, 5, value, 10);
         delete key;
         delete value;
     }
-    printf("%d %d %d", scht->buckets(), scht->size(), negatives);
+    for (int i = 0; i < 10000000; i++) {
+        char* key = random_string(5);
+        if (scht->get_item(key, 5) != NULL) {
+            hits ++;
+        }
+        delete key;
+    }
+    printf("%d", hits);
 }
