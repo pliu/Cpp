@@ -5,6 +5,7 @@
 #ifndef CPP_JUMP_HASH_H
 #define CPP_JUMP_HASH_H
 
+
 #include <cstdint>
 #include <vector>
 
@@ -28,5 +29,6 @@ private:
 
     int32_t jump_hash(uint64_t key);
 };
+
 
 #endif //CPP_JUMP_HASH_H

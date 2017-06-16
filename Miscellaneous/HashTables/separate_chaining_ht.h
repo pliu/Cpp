@@ -5,6 +5,7 @@
 #ifndef CPP_SEPARATE_CHAINING_HT_H
 #define CPP_SEPARATE_CHAINING_HT_H
 
+
 #include <cstdint>
 #include "abstract_ht.h"
 
@@ -39,9 +40,11 @@ public:
 
     void set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
-    const void *get_item(const void *key, uint32_t len);
+    const void *get_item(const void *key, uint32_t len) const;
 
     void delete_item(const void *key, uint32_t len);
+
+    const uint16_t *get_bucket_sizes();
 
 private:
     Node **bucket_array;
@@ -51,11 +54,10 @@ private:
 
     void expand_table();
 
-    static uint32_t get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets);
+    static const uint32_t get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets);
 
     static Node **find_item(Node **bucket_array, uint32_t bucket_index, const void *key, uint32_t len);
-
-    static void clear_bucket_array(Node **bucket_array, uint32_t num_buckets);
 };
+
 
 #endif //CPP_SEPARATE_CHAINING_HT_H
