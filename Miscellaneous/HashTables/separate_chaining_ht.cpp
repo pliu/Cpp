@@ -11,6 +11,13 @@
 #include <cstdio>
 #endif
 
+#ifdef INSTRUMENT
+
+#include <chrono>
+
+Stats stats;
+#endif
+
 Node::Node(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
     set(key, key_len, value, value_len);
 }
@@ -52,6 +59,11 @@ SeparateChainingHt::~SeparateChainingHt() {
 }
 
 bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
+
+#ifdef INSTRUMENT
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+
     uint32_t bucket_index = get_bucket_index(key, key_len, num_buckets);
     Node **results = find_item(bucket_array, bucket_index, key, key_len);
 
@@ -59,7 +71,7 @@ bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void 
     printf("add_item %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
 #endif
 
-    Node* res = results[0];
+    Node *res = results[0];
     delete results;
     if (res != NULL) {
         return false;
@@ -67,6 +79,12 @@ bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void 
     Node *node = new Node(key, key_len, value, value_len);
     insert_node(bucket_index, node);
     num_items++;
+
+#ifdef INSTRUMENT
+    stats.add_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
+                                                                           start);
+#endif
+
     if ((double) num_items / num_buckets >= load_threshold) {
         expand_table();
     }
@@ -74,6 +92,11 @@ bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void 
 }
 
 void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
+
+#ifdef INSTRUMENT
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+
     uint32_t bucket_index = get_bucket_index(key, key_len, num_buckets);
     Node **results = find_item(bucket_array, bucket_index, key, key_len);
 
@@ -81,7 +104,7 @@ void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void 
     printf("set_item %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
 #endif
 
-    Node* res = results[0];
+    Node *res = results[0];
     delete results;
     if (res != NULL) {
         res->replace(key, key_len, value, value_len);
@@ -90,12 +113,23 @@ void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void 
     Node *node = new Node(key, key_len, value, value_len);
     insert_node(bucket_index, node);
     num_items++;
+
+#ifdef INSTRUMENT
+    stats.set_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
+                                                                           start);
+#endif
+
     if ((double) num_items / num_buckets > load_threshold) {
         expand_table();
     }
 }
 
 const void *SeparateChainingHt::get_item(const void *key, uint32_t len) const {
+
+#ifdef INSTRUMENT
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+
     uint32_t bucket_index = get_bucket_index(key, len, num_buckets);
 
 #ifdef DEBUG
@@ -108,10 +142,21 @@ const void *SeparateChainingHt::get_item(const void *key, uint32_t len) const {
     if (ret == NULL) {
         return NULL;
     }
+
+#ifdef INSTRUMENT
+    stats.get_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
+                                                                           start);
+#endif
+
     return ret->value;
 }
 
 void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
+
+#ifdef INSTRUMENT
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+
     uint32_t bucket_index = get_bucket_index(key, len, num_buckets);
     Node **results = find_item(bucket_array, bucket_index, key, len);
 
@@ -129,6 +174,12 @@ void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
         num_items--;
     }
     delete results;
+
+#ifdef INSTRUMENT
+    stats.delete_time += std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start);
+#endif
+
 }
 
 void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
@@ -138,6 +189,11 @@ void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
 }
 
 void SeparateChainingHt::expand_table() {
+
+#ifdef INSTRUMENT
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+
     Node **old_array = bucket_array;
     uint32_t old_num = num_buckets;
     num_buckets *= 2;
@@ -164,6 +220,12 @@ void SeparateChainingHt::expand_table() {
         }
     }
     delete old_array;
+
+#ifdef INSTRUMENT
+    stats.expand_time += std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start);
+#endif
+
 }
 
 const uint32_t SeparateChainingHt::get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets) {

@@ -7,6 +7,7 @@
 
 
 #include <cstdint>
+#include <chrono>
 #include "abstract_ht.h"
 
 namespace {
@@ -29,6 +30,18 @@ namespace {
     };
 
 }
+
+#ifdef INSTRUMENT
+struct Stats {
+    std::chrono::nanoseconds get_time;
+    std::chrono::nanoseconds add_time;
+    std::chrono::nanoseconds set_time;
+    std::chrono::nanoseconds delete_time;
+    std::chrono::nanoseconds expand_time;
+};
+
+extern Stats stats;
+#endif
 
 class SeparateChainingHt : public AbstractHt {
 public:
