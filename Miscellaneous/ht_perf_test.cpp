@@ -8,7 +8,7 @@
 #include "Utils/utils.h"
 
 int main() {
-    SeparateChainingHt *scht = new SeparateChainingHt(5, 1.5);
+    AbstractHt *scht = new SeparateChainingHt(5, 1.5);
     for (uint32_t i = 0; i < 1000000; i++) {
         char *key = random_string(5);
         char *value = random_string(10);

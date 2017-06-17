@@ -6,6 +6,18 @@
 #define CPP_ABSTRACT_HT_H
 
 
+#ifdef INSTRUMENT
+struct Stats {
+    std::chrono::nanoseconds get_time;
+    std::chrono::nanoseconds add_time;
+    std::chrono::nanoseconds set_time;
+    std::chrono::nanoseconds delete_time;
+    std::chrono::nanoseconds expand_time;
+};
+
+extern Stats stats;
+#endif
+
 class AbstractHt {
 public:
     uint32_t size() { return num_items; }
@@ -23,6 +35,9 @@ public:
 protected:
     uint32_t num_buckets;
     uint32_t num_items;
+    double load_threshold;
+
+    virtual void expand_table() = 0;
 };
 
 

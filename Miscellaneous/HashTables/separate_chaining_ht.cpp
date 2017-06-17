@@ -182,12 +182,6 @@ void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
 
 }
 
-void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
-    Node *old = bucket_array[bucket_index];
-    bucket_array[bucket_index] = node;
-    node->next = old;
-}
-
 void SeparateChainingHt::expand_table() {
 
 #ifdef INSTRUMENT
@@ -226,6 +220,12 @@ void SeparateChainingHt::expand_table() {
             std::chrono::high_resolution_clock::now() - start);
 #endif
 
+}
+
+void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
+    Node *old = bucket_array[bucket_index];
+    bucket_array[bucket_index] = node;
+    node->next = old;
 }
 
 const uint32_t SeparateChainingHt::get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets) {

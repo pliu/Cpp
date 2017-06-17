@@ -29,19 +29,7 @@ namespace {
         void set(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
     };
 
-}
-
-#ifdef INSTRUMENT
-struct Stats {
-    std::chrono::nanoseconds get_time;
-    std::chrono::nanoseconds add_time;
-    std::chrono::nanoseconds set_time;
-    std::chrono::nanoseconds delete_time;
-    std::chrono::nanoseconds expand_time;
-};
-
-extern Stats stats;
-#endif
+} // anonymous namespace
 
 class SeparateChainingHt : public AbstractHt {
 public:
@@ -61,11 +49,10 @@ public:
 
 private:
     Node **bucket_array;
-    double load_threshold;
-
-    void insert_node(uint32_t bucket_index, Node *node);
 
     void expand_table();
+
+    void insert_node(uint32_t bucket_index, Node *node);
 
     static const uint32_t get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets);
 
