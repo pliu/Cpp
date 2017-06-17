@@ -2,3 +2,4 @@ LeetCode/a.out
 cmake-build-debug/
 .idea/
 CMakeLists.txt
+*.s

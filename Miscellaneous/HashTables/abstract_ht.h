@@ -1,10 +1,8 @@
-//
-// Created by Peng on 6/14/2017.
-//
-
 #ifndef CPP_ABSTRACT_HT_H
 #define CPP_ABSTRACT_HT_H
 
+
+#include <chrono>
 
 #ifdef INSTRUMENT
 struct Stats {
@@ -14,8 +12,6 @@ struct Stats {
     std::chrono::nanoseconds delete_time;
     std::chrono::nanoseconds expand_time;
 };
-
-extern Stats stats;
 #endif
 
 class AbstractHt {

@@ -1,11 +1,12 @@
-//
-// Created by Peng on 6/14/2017.
-//
-
 #include <cstdio>
 #include <iostream>
 #include "HashTables/separate_chaining_ht.h"
+#include "HashTables/open_addressing_ht.h"
 #include "Utils/utils.h"
+
+#ifdef INSTRUMENT
+Stats stats;
+#endif
 
 int main() {
     AbstractHt *scht = new SeparateChainingHt(5, 1.5);
@@ -16,7 +17,7 @@ int main() {
         delete key;
         delete value;
     }
-    for (uint32_t i = 0; i < 1000000; i++) {
+    for (uint32_t i = 0; i < 10000000; i++) {
         char *key = random_string(5);
         scht->get_item(key, 5);
         delete key;

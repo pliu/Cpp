@@ -1,13 +1,12 @@
-//
-// Created by Peng on 6/14/2017.
-//
+/*
+ *
+ */
 
 #ifndef CPP_SEPARATE_CHAINING_HT_H
 #define CPP_SEPARATE_CHAINING_HT_H
 
 
 #include <cstdint>
-#include <chrono>
 #include "abstract_ht.h"
 
 namespace {
@@ -16,6 +15,7 @@ namespace {
     public:
         Node(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
+        // The destructor performs a recursive delete of all downstream nodes as well
         ~Node();
 
         void replace(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
@@ -29,7 +29,7 @@ namespace {
         void set(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
     };
 
-} // anonymous namespace
+}
 
 class SeparateChainingHt : public AbstractHt {
 public:

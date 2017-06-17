@@ -1,7 +1,3 @@
-//
-// Created by Peng on 6/14/2017.
-//
-
 #include <cstdlib>
 #include <cstring>
 #include "separate_chaining_ht.h"
@@ -12,10 +8,9 @@
 #endif
 
 #ifdef INSTRUMENT
-
 #include <chrono>
 
-Stats stats;
+extern Stats stats;
 #endif
 
 Node::Node(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
@@ -36,7 +31,7 @@ void Node::replace(const void *key, uint32_t key_len, const void *value, uint32_
     set(key, key_len, value, value_len);
 }
 
-void Node::set(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
+inline void Node::set(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
     this->key_len = key_len;
     this->key = malloc(key_len);
     memcpy(this->key, key, key_len);
@@ -119,7 +114,7 @@ void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void 
                                                                            start);
 #endif
 
-    if ((double) num_items / num_buckets > load_threshold) {
+    if ((double) num_items / num_buckets >= load_threshold) {
         expand_table();
     }
 }
@@ -222,13 +217,13 @@ void SeparateChainingHt::expand_table() {
 
 }
 
-void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
+inline void SeparateChainingHt::insert_node(uint32_t bucket_index, Node *node) {
     Node *old = bucket_array[bucket_index];
     bucket_array[bucket_index] = node;
     node->next = old;
 }
 
-const uint32_t SeparateChainingHt::get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets) {
+inline const uint32_t SeparateChainingHt::get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets) {
     uint64_t hash_out[2];
     MurmurHash3_x64_128(key, key_len, 0, &hash_out);
     return (uint32_t) (hash_out[0] % num_buckets);

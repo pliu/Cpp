@@ -1,7 +1,3 @@
-//
-// Created by Peng on 6/15/2017.
-//
-
 #include <cstdint>
 #include <cstdlib>
 #include "utils.h"

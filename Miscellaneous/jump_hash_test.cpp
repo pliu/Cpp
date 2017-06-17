@@ -1,7 +1,3 @@
-//
-// Created by Peng on 6/4/2017.
-//
-
 #include <cstdio>
 #include <cstdint>
 #include <vector>
