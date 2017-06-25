@@ -29,11 +29,11 @@ namespace {
 
     class BucketSlot {
     public:
-        BucketSlot();
+        BucketSlot() {}
 
-        ~BucketSlot() {}
+        ~BucketSlot();
 
-        Entry* entry;
+        Entry* entry = NULL;
         char tag;
         char tombstone:1;
     };
@@ -62,7 +62,7 @@ private:
 
     static uint32_t *get_bucket_indices(const void *key, uint32_t key_len, uint32_t num_buckets);
 
-    static Entry *find_item(BucketSlot **bucket_array, uint32_t bucket_index, const void *key, uint32_t len);
+    static void find_slot(BucketSlot **bucket_array, uint32_t *bucket_indices, const void *key, uint32_t len);
 };
 
 

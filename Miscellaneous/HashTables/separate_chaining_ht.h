@@ -15,8 +15,7 @@ namespace {
     public:
         Node(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
-        // The destructor performs a recursive delete of all downstream nodes as well
-        ~Node();
+        ~Node() {}
 
         void replace(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
@@ -55,7 +54,7 @@ private:
 
     static const uint32_t get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets);
 
-    static void find_item(Node **bucket_array, uint32_t bucket_index, const void *key, uint32_t len);
+    static void find_node(Node **bucket_array, uint32_t bucket_index, const void *key, uint32_t len);
 };
 
 

@@ -3,10 +3,6 @@
 #include "separate_chaining_ht.h"
 #include "murmur3_hash.h"
 
-#ifdef DEBUG
-#include <cstdio>
-#endif
-
 #ifdef INSTRUMENT
 #include <chrono>
 
@@ -19,17 +15,11 @@ Node::Node(const void *key, uint32_t key_len, const void *value, uint32_t value_
     replace(key, key_len, value, value_len);
 }
 
-Node::~Node() {
-    if (next != NULL) {
-        delete next;
-    }
-}
-
 inline void Node::replace(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
     this->key_len = key_len;
     this->value_len = value_len;
-    memcpy(this->key, key, key_len);
-    memcpy(this->value, value, value_len);
+    memcpy(this->key, key, key_len + 1);
+    memcpy(this->value, value, value_len + 1);
 }
 
 SeparateChainingHt::SeparateChainingHt(uint32_t num_buckets, double load_threshold) {
@@ -40,8 +30,11 @@ SeparateChainingHt::SeparateChainingHt(uint32_t num_buckets, double load_thresho
 
 SeparateChainingHt::~SeparateChainingHt() {
     for (uint32_t i = 0; i < num_buckets; i++) {
-        if (bucket_array[i] != NULL) {
-            delete bucket_array[i];
+        Node *current = bucket_array[i];
+        while (current != NULL) {
+            Node *next = current->next;
+            delete current;
+            current = next;
         }
     }
 }
@@ -52,23 +45,22 @@ bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void 
 #endif
 
     uint32_t bucket_index = get_bucket_index(key, key_len, num_buckets);
-    find_item(bucket_array, bucket_index, key, key_len);
+    find_node(bucket_array, bucket_index, key, key_len);
     if (found[0] != NULL) {
-#ifdef DEBUG
-        printf("add_item identical key %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
-#endif
-        return false;
-    }
-    Node *node = new Node(key, key_len, value, value_len);
-    insert_node(bucket_index, node);
-    num_items++;
-#ifdef DEBUG
-    printf("add_item %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
-#endif
 
 #ifdef INSTRUMENT
-    stats.add_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
-                                                                           start);
+        stats.add_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::high_resolution_clock::now() - start));
+#endif
+
+        return false;
+    }
+    insert_node(bucket_index, new Node(key, key_len, value, value_len));
+    num_items++;
+
+#ifdef INSTRUMENT
+    stats.add_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 
     if ((double) num_items / num_buckets >= load_threshold) {
@@ -83,24 +75,23 @@ void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void 
 #endif
 
     uint32_t bucket_index = get_bucket_index(key, key_len, num_buckets);
-    find_item(bucket_array, bucket_index, key, key_len);
+    find_node(bucket_array, bucket_index, key, key_len);
     if (found[0] != NULL) {
         found[0]->replace(key, key_len, value, value_len);
-#ifdef DEBUG
-        printf("set_item replace %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
-#endif
-        return;
-    }
-    Node *node = new Node(key, key_len, value, value_len);
-    insert_node(bucket_index, node);
-    num_items++;
-#ifdef DEBUG
-    printf("set_item add %.*s - %.*s: %d\n", key_len, key, value_len, value, bucket_index);
-#endif
 
 #ifdef INSTRUMENT
-    stats.set_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
-                                                                           start);
+        stats.set_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::high_resolution_clock::now() - start));
+#endif
+
+        return;
+    }
+    insert_node(bucket_index, new Node(key, key_len, value, value_len));
+    num_items++;
+
+#ifdef INSTRUMENT
+    stats.set_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 
     if ((double) num_items / num_buckets >= load_threshold) {
@@ -114,22 +105,16 @@ const void *SeparateChainingHt::get_item(const void *key, uint32_t len) const {
 #endif
 
     uint32_t bucket_index = get_bucket_index(key, len, num_buckets);
-    find_item(bucket_array, bucket_index, key, len);
-    if (found[0] == NULL) {
-#ifdef DEBUG
-        printf("get_item doesn't exist %.*s: %d\n", len, key, bucket_index);
-#endif
-        return NULL;
-    }
-#ifdef DEBUG
-    printf("get_item %.*s: %d\n", len, key, bucket_index);
-#endif
+    find_node(bucket_array, bucket_index, key, len);
 
 #ifdef INSTRUMENT
-    stats.get_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
-                                                                           start);
+    stats.get_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 
+    if (found[0] == NULL) {
+        return NULL;
+    }
     return found[0]->value;
 }
 
@@ -139,28 +124,21 @@ void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
 #endif
 
     uint32_t bucket_index = get_bucket_index(key, len, num_buckets);
-    find_item(bucket_array, bucket_index, key, len);
+    find_node(bucket_array, bucket_index, key, len);
+
     if (found[0] != NULL) {
         if (found[1] != NULL) {
             found[1]->next = found[0]->next;
         } else {
-            bucket_array[bucket_index] = NULL;
+            bucket_array[bucket_index] = found[0]->next;
         }
         delete found[0];
         num_items--;
-#ifdef DEBUG
-        printf("delete_item %.*s: %d\n", len, key, bucket_index);
-#endif
     }
-#ifdef DEBUG
-    else {
-        printf("delete_item doesn't exist %.*s: %d\n", len, key, bucket_index);
-    }
-#endif
 
 #ifdef INSTRUMENT
-    stats.delete_time += std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - start);
+    stats.delete_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 }
 
@@ -171,10 +149,6 @@ void SeparateChainingHt::expand_table() {
 
     uint32_t old_num = num_buckets;
     num_buckets *= 2;
-#ifdef DEBUG
-    printf("expand_table: %d -> %d\n", old_num, num_buckets);
-#endif
-
     Node **old_array = bucket_array;
     bucket_array = new Node *[num_buckets]();
     for (uint32_t i = 0; i < old_num; i++) {
@@ -186,16 +160,13 @@ void SeparateChainingHt::expand_table() {
             if (node_ptr != NULL) {
                 next_ptr = next_ptr->next;
             }
-#ifdef DEBUG
-            printf("expand_table %.*s: %d\n", node_ptr->key_len, node_ptr->key, bucket_index);
-#endif
         }
     }
     delete old_array;
 
 #ifdef INSTRUMENT
-    stats.expand_time += std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - start);
+    stats.expand_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 }
 
@@ -211,7 +182,7 @@ inline const uint32_t SeparateChainingHt::get_bucket_index(const void *key, uint
     return (uint32_t) (hash_out[0] % num_buckets);
 }
 
-void SeparateChainingHt::find_item(Node **bucket_array, uint32_t bucket_index, const void *key, uint32_t len) {
+void SeparateChainingHt::find_node(Node **bucket_array, uint32_t bucket_index, const void *key, uint32_t len) {
     found[0] = NULL;
     found[1] = NULL;
     found[0] = bucket_array[bucket_index];

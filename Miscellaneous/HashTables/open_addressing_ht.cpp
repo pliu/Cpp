@@ -3,15 +3,13 @@
 #include "open_addressing_ht.h"
 #include "murmur3_hash.h"
 
-#ifdef DEBUG
-#include <cstdio>
-#endif
-
 #ifdef INSTRUMENT
 #include <chrono>
 
 extern Stats stats;
 #endif
+
+static BucketSlot *found;
 
 Entry::Entry(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
     replace(key, key_len, value, value_len);
@@ -20,12 +18,14 @@ Entry::Entry(const void *key, uint32_t key_len, const void *value, uint32_t valu
 inline void Entry::replace(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
     this->key_len = key_len;
     this->value_len = value_len;
-    memcpy(this->key, key, key_len);
-    memcpy(this->value, value, value_len);
+    memcpy(this->key, key, key_len + 1);
+    memcpy(this->value, value, value_len + 1);
 }
 
-BucketSlot::BucketSlot() {
-    entry = NULL;
+BucketSlot::~BucketSlot() {
+    if (entry != NULL) {
+        delete entry;
+    }
 }
 
 OpenAddressingHt::OpenAddressingHt(uint32_t num_buckets, double load_threshold) {
@@ -44,18 +44,27 @@ OpenAddressingHt::~OpenAddressingHt() {
 }
 
 bool OpenAddressingHt::add_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
-
 #ifdef INSTRUMENT
     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
     uint32_t *bucket_indices = get_bucket_indices(key, key_len, num_buckets);
+    find_slot(bucket_array, bucket_indices, key, key_len);
+    if (found->entry != NULL) {
 
+#ifdef INSTRUMENT
+        stats.add_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::high_resolution_clock::now() - start));
+#endif
+
+        return false;
+    }
+    found->entry = new Entry(key, key_len, value, value_len);
     num_items++;
 
 #ifdef INSTRUMENT
-    stats.add_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
-                                                                           start);
+    stats.add_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 
     if ((double) num_items / (num_buckets * SLOTS_PER_BUCKET) >= load_threshold) {
@@ -65,64 +74,86 @@ bool OpenAddressingHt::add_item(const void *key, uint32_t key_len, const void *v
 }
 
 void OpenAddressingHt::set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) {
-
 #ifdef INSTRUMENT
     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
+    uint32_t *bucket_indices = get_bucket_indices(key, key_len, num_buckets);
+    find_slot(bucket_array, bucket_indices, key, key_len);
+    Entry* found_entry = found->entry;
+    if (found_entry != NULL) {
+        found_entry->replace(key, key_len, value, value_len);
+
+#ifdef INSTRUMENT
+        stats.set_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::high_resolution_clock::now() - start));
+#endif
+
+        return;
+    }
+    found->entry = new Entry(key, key_len, value, value_len);
     num_items++;
 
 #ifdef INSTRUMENT
-    stats.set_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
-                                                                           start);
+    stats.set_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 
-    if ((double) num_items / (num_buckets * SLOTS_PER_BUCKET) >= load_threshold) {
+    if ((double) num_items / num_buckets >= load_threshold) {
         expand_table();
     }
 }
 
 const void *OpenAddressingHt::get_item(const void *key, uint32_t len) const {
-
 #ifdef INSTRUMENT
     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
+    uint32_t *bucket_indices = get_bucket_indices(key, len, num_buckets);
+    find_slot(bucket_array, bucket_indices, key, len);
+    Entry* found_entry = found->entry;
 
 #ifdef INSTRUMENT
-    stats.get_time += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() -
-                                                                           start);
+    stats.get_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
 
-    return NULL;
+    if (found_entry == NULL) {
+        return NULL;
+    }
+    return found_entry->value;
 }
 
 void OpenAddressingHt::delete_item(const void *key, uint32_t len) {
-
 #ifdef INSTRUMENT
     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
+    uint32_t *bucket_indices = get_bucket_indices(key, len, num_buckets);
+    find_slot(bucket_array, bucket_indices, key, len);
+    if (found->entry != NULL) {
+        found->tombstone = 1;
+        delete found->entry;
+        found->entry = NULL;
+        num_items--;
+    }
 
 #ifdef INSTRUMENT
-    stats.delete_time += std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - start);
+    stats.delete_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
-
 }
 
 void OpenAddressingHt::expand_table() {
-
 #ifdef INSTRUMENT
     auto start = std::chrono::high_resolution_clock::now();
 #endif
 
 
 #ifdef INSTRUMENT
-    stats.expand_time += std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - start);
+    stats.expand_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now() - start));
 #endif
-
 }
 
 uint32_t *OpenAddressingHt::get_bucket_indices(const void *key, uint32_t key_len, uint32_t num_buckets) {
@@ -133,6 +164,6 @@ uint32_t *OpenAddressingHt::get_bucket_indices(const void *key, uint32_t key_len
     return (uint32_t *) ret;
 }
 
-Entry* OpenAddressingHt::find_item(BucketSlot **bucket_array, uint32_t bucket_index, const void *key, uint32_t len) {
-
+void OpenAddressingHt::find_slot(BucketSlot **bucket_array, uint32_t *bucket_indices, const void *key, uint32_t len) {
+    found = NULL;
 }
