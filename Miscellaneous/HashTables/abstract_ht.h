@@ -31,9 +31,6 @@ public:
 protected:
     uint32_t num_buckets;
     uint32_t num_items;
-    double load_threshold;
-
-    virtual void expand_table() = 0;
 };
 
 

@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <iostream>
 #include "HashTables/separate_chaining_ht.h"
-#include "HashTables/open_addressing_ht.h"
 #include "Utils/utils.h"
 
 #ifdef INSTRUMENT
@@ -9,17 +8,17 @@ Stats stats;
 #endif
 
 int main() {
-    AbstractHt *scht = new SeparateChainingHt(5, 1.5);
+    AbstractHt *ht = new SeparateChainingHt(5, 1.5);
     for (uint32_t i = 0; i < 1000000; i++) {
         char *key = random_string(5);
         char *value = random_string(10);
-        scht->add_item(key, 5, value, 10);
+        ht->add_item(key, 5, value, 10);
         delete key;
         delete value;
     }
     for (uint32_t i = 0; i < 10000000; i++) {
         char *key = random_string(5);
-        scht->get_item(key, 5);
+        ht->get_item(key, 5);
         delete key;
     }
 

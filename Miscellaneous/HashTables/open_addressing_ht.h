@@ -1,4 +1,4 @@
-/*
+/**
  *
  */
 
@@ -17,16 +17,14 @@ namespace {
     public:
         Entry(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
-        ~Entry();
+        ~Entry() {}
 
         void replace(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
         uint32_t key_len;
-        void *key;
-        void *value;
-
-    private:
-        void set(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
+        uint32_t value_len;
+        char key[5];
+        char value[10];
     };
 
     class BucketSlot {
@@ -58,10 +56,13 @@ public:
 
 private:
     BucketSlot** bucket_array;
+    double load_threshold;
 
     void expand_table();
 
-    static const uint32_t get_bucket_index(const void *key, uint32_t key_len, uint32_t num_buckets);
+    static uint32_t *get_bucket_indices(const void *key, uint32_t key_len, uint32_t num_buckets);
+
+    static Entry *find_item(BucketSlot **bucket_array, uint32_t bucket_index, const void *key, uint32_t len);
 };
 
 
