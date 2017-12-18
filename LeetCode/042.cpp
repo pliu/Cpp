@@ -68,6 +68,8 @@ public:
         return sum;
         */
 
+        /*
+        This method is O(n) space; however, there is a O(1) space solution.
         // For each the position in the vector of heights, determine the highest peak to the left and right of the given
         // position by iterating through the vector twice (from left to right and then from right to left)
         int highest = 0;
@@ -91,6 +93,38 @@ public:
         int sum = 0;
         for (int i = 0; i < height.size(); i ++) {
             sum += get_capacity(height[i], left_highest[i], right_highest[i]);
+        }
+        return sum;
+        */
+
+        // Inspired by Ralph Furmaniak's hint to focus on the highest point during my Robinhood interview
+        // Iterating through heights, tracking the max height seen so far and its index. Whenever a higher height is
+        // found, add the amount that that particular reservoir can hold (for every index between the last index and the
+        // new index, exclusive, add the difference between the last max height [guaranteed to be the minimum of the two
+        // boundaries] and the height at that index). As this catches all reservoirs where the higher of the boundaries
+        // is on the right, iterate in reverse to capture cases where the higher of the boundaries is on the left.
+        int max_so_far = 0;
+        int max_so_far_index = 0;
+        int sum = 0;
+        for (int i = 0; i < height.size(); i ++) {
+            if (height[i] > max_so_far) {
+                for (int j = max_so_far_index; j < i; j++) {
+                    sum += max_so_far - height[j];
+                }
+                max_so_far = height[i];
+                max_so_far_index = i;
+            }
+        }
+        max_so_far = 0;
+        max_so_far_index = height.size() - 1;
+        for (int i = height.size() - 1; i >= 0; i --) {
+            if (height[i] > max_so_far) {
+                for (int j = max_so_far_index; j > i; j--) {
+                    sum += max_so_far - height[j];
+                }
+                max_so_far = height[i];
+                max_so_far_index = i;
+            }
         }
         return sum;
     }

@@ -2,11 +2,9 @@
 #define CPP_ABSTRACT_HT_H
 
 
-#include <chrono>
-
-
 #ifdef INSTRUMENT
 
+#include <chrono>
 #include <iostream>
 #include <vector>
 #include <algorithm>
