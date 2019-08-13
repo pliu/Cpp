@@ -18,61 +18,61 @@ public:
     std::vector<std::chrono::nanoseconds> expand_time;
 
     void printGetStats() {
-        std::vector<std::chrono::nanoseconds> stats = getStats(&get_time);
+        std::vector<long> stats = getStats(&get_time);
         std::cout << "Get (mean, P9999, max, total): ";
         printStats(stats);
     }
 
     void printAddStats() {
-        std::vector<std::chrono::nanoseconds> stats = getStats(&add_time);
+        std::vector<long> stats = getStats(&add_time);
         std::cout << "Add (mean, P9999, max, total): ";
         printStats(stats);
     }
 
     void printSetStats() {
-        std::vector<std::chrono::nanoseconds> stats = getStats(&set_time);
+        std::vector<long> stats = getStats(&set_time);
         std::cout << "Set (mean, P9999, max, total): ";
         printStats(stats);
     }
 
     void printDeleteStats() {
-        std::vector<std::chrono::nanoseconds> stats = getStats(&delete_time);
+        std::vector<long> stats = getStats(&delete_time);
         std::cout << "Delete (mean, P9999, max, total): ";
         printStats(stats);
     }
 
     void printExpandStats() {
-        std::chrono::nanoseconds total = getTotal(&expand_time);
-        std::cout << "Expand (total): " << total.count() << std::endl;
+        long total = getTotal(&expand_time);
+        std::cout << "Expand (total): " << total << std::endl;
     }
 
 private:
     // Returns the mean, P9999, max, and total in a given record
-    static std::vector<std::chrono::nanoseconds> getStats(std::vector<std::chrono::nanoseconds> *record) {
-        std::vector<std::chrono::nanoseconds> ret;
+    static std::vector<long> getStats(std::vector<std::chrono::nanoseconds> *record) {
+        std::vector<long> ret;
         std::sort(record->begin(), record->end());
-        std::chrono::nanoseconds total = getTotal(record);
-        std::chrono::nanoseconds mean = total / record->size();
+        long total = getTotal(record);
+        long mean = total / record->size();
         ret.push_back(mean);
-        std::chrono::nanoseconds p9999 = record->at(record->size() * 0.9999);
+        long p9999 = record->at(record->size() * 0.9999).count();
         ret.push_back(p9999);
-        std::chrono::nanoseconds max = record->at(record->size() - 1);
+        long max = record->at(record->size() - 1).count();
         ret.push_back(max);
         ret.push_back(total);
         return ret;
     }
 
-    static std::chrono::nanoseconds getTotal(std::vector<std::chrono::nanoseconds> *record) {
-        std::chrono::nanoseconds total;
-        for (std::vector<std::chrono::nanoseconds>::iterator it = record->begin(); it != record->end(); it++) {
-            total += *it;
+    static long getTotal(std::vector<std::chrono::nanoseconds> *record) {
+        long total = 0;
+        for (auto &it : *record) {
+            total += it.count();
         }
         return total;
     }
 
-    static void printStats(const std::vector<std::chrono::nanoseconds> &stats) {
-        for (const std::chrono::nanoseconds &time : stats) {
-            std::cout << time.count() << " | ";
+    static void printStats(const std::vector<long> &stats) {
+        for (const long &time : stats) {
+            std::cout << time << " | ";
         }
         std::cout << std::endl;
     }

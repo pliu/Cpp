@@ -4,7 +4,7 @@
 
 class JumpHash {
 public:
-    JumpHash(int32_t num_buckets) {
+    explicit JumpHash(int32_t num_buckets) {
         buckets = new std::vector<uint64_t>[num_buckets];
         this->num_buckets = num_buckets;
     }
@@ -20,8 +20,8 @@ public:
 
     bool key_exists(uint64_t key) {
         int32_t bucket_index = jump_hash(key);
-        for (std::vector<uint64_t>::iterator it = buckets[bucket_index].begin(); it != buckets[bucket_index].end(); it++) {
-            if (key == *it) {
+        for (unsigned long &it : buckets[bucket_index]) {
+            if (key == it) {
                 return true;
             }
         }
@@ -31,7 +31,7 @@ public:
     void add_buckets(int32_t num_add) {
         int moved = 0;
         num_buckets += num_add;
-        std::vector<uint64_t> *new_buckets = new std::vector<uint64_t>[num_buckets];
+        auto *new_buckets = new std::vector<uint64_t>[num_buckets];
         for (int32_t i = 0; i < num_buckets - num_add; i++) {
             for (std::vector<uint64_t>::iterator it = buckets[i].begin(); it != buckets[i].end(); it++) {
                 int32_t bucket_index = jump_hash(*it);
@@ -48,7 +48,7 @@ public:
 
     void print_sizes() {
         for (int32_t i = 0; i < num_buckets; i++) {
-            printf("Bucket #%d: %d\n", i, buckets[i].size());
+            printf("Bucket #%d: %lu\n", i, buckets[i].size());
         }
     }
 
@@ -69,7 +69,7 @@ private:
 
 
 int main() {
-    JumpHash *jh = new JumpHash(10);
+    auto *jh = new JumpHash(10);
     uint64_t num_keys = 100000ULL;
     for (uint64_t i = 0; i < num_keys; i++) {
         jh->add_key(i);

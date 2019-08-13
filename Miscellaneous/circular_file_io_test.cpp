@@ -53,7 +53,7 @@ private:
 };
 
 int main() {
-    FileIO *fio = new FileIO("C:/Users/Peng/tmp.test", 1 << 8, 1 << 3);
+    auto *fio = new FileIO("C:/Users/Peng/tmp.test", 1 << 8, 1 << 3);
     fio->write("This is an initial test", 23);
     fio->write("This is an initial test2", 24);
     fio->read();

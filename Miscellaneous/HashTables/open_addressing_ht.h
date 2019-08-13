@@ -46,13 +46,13 @@ public:
 
     ~OpenAddressingHt();
 
-    bool add_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
+    bool add_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) override;
 
-    void set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
+    void set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) override;
 
-    const void *get_item(const void *key, uint32_t len) const;
+    const void *get_item(const void *key, uint32_t len) const override;
 
-    void delete_item(const void *key, uint32_t len);
+    void delete_item(const void *key, uint32_t len) override;
 
 private:
     BucketSlot** bucket_array;

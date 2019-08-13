@@ -15,11 +15,11 @@ namespace {
     public:
         Node(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
-        ~Node() {}
+        ~Node() = default;
 
         void replace(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
 
-        Node *next = NULL;
+        Node *next = nullptr;
         uint32_t key_len;
         uint32_t value_len;
         char key[5];
@@ -34,13 +34,13 @@ public:
 
     ~SeparateChainingHt();
 
-    bool add_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
+    bool add_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) override;
 
-    void set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len);
+    void set_item(const void *key, uint32_t key_len, const void *value, uint32_t value_len) override;
 
-    const void *get_item(const void *key, uint32_t len) const;
+    const void *get_item(const void *key, uint32_t len) const override;
 
-    void delete_item(const void *key, uint32_t len);
+    void delete_item(const void *key, uint32_t len) override;
 
     uint16_t *get_bucket_sizes();
 

@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <cstring>
 #include "open_addressing_ht.h"
 #include "murmur3_hash.h"
@@ -23,9 +22,7 @@ inline void Entry::replace(const void *key, uint32_t key_len, const void *value,
 }
 
 BucketSlot::~BucketSlot() {
-    if (entry != NULL) {
-        delete entry;
-    }
+    delete entry;
 }
 
 OpenAddressingHt::OpenAddressingHt(uint32_t num_buckets, double load_threshold) {
@@ -50,7 +47,7 @@ bool OpenAddressingHt::add_item(const void *key, uint32_t key_len, const void *v
 
     uint32_t *bucket_indices = get_bucket_indices(key, key_len, num_buckets);
     find_slot(bucket_array, bucket_indices, key, key_len);
-    if (found->entry != NULL) {
+    if (found->entry != nullptr) {
 
 #ifdef INSTRUMENT
         stats.add_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -81,7 +78,7 @@ void OpenAddressingHt::set_item(const void *key, uint32_t key_len, const void *v
     uint32_t *bucket_indices = get_bucket_indices(key, key_len, num_buckets);
     find_slot(bucket_array, bucket_indices, key, key_len);
     Entry* found_entry = found->entry;
-    if (found_entry != NULL) {
+    if (found_entry != nullptr) {
         found_entry->replace(key, key_len, value, value_len);
 
 #ifdef INSTRUMENT
@@ -118,8 +115,8 @@ const void *OpenAddressingHt::get_item(const void *key, uint32_t len) const {
             std::chrono::high_resolution_clock::now() - start));
 #endif
 
-    if (found_entry == NULL) {
-        return NULL;
+    if (found_entry == nullptr) {
+        return nullptr;
     }
     return found_entry->value;
 }
@@ -131,10 +128,10 @@ void OpenAddressingHt::delete_item(const void *key, uint32_t len) {
 
     uint32_t *bucket_indices = get_bucket_indices(key, len, num_buckets);
     find_slot(bucket_array, bucket_indices, key, len);
-    if (found->entry != NULL) {
+    if (found->entry != nullptr) {
         found->tombstone = 1;
         delete found->entry;
-        found->entry = NULL;
+        found->entry = nullptr;
         num_items--;
     }
 
@@ -157,7 +154,7 @@ void OpenAddressingHt::expand_table() {
 }
 
 uint32_t *OpenAddressingHt::get_bucket_indices(const void *key, uint32_t key_len, uint32_t num_buckets) {
-    uint64_t *ret = new uint64_t[2];
+    auto *ret = new uint64_t[2];
     MurmurHash3_x64_128(key, key_len, 0, ret);
     ret[0] %= num_buckets;
     ret[1] %= num_buckets;
@@ -165,5 +162,5 @@ uint32_t *OpenAddressingHt::get_bucket_indices(const void *key, uint32_t key_len
 }
 
 void OpenAddressingHt::find_slot(BucketSlot **bucket_array, uint32_t *bucket_indices, const void *key, uint32_t len) {
-    found = NULL;
+    found = nullptr;
 }

@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <cstring>
 #include "separate_chaining_ht.h"
 #include "murmur3_hash.h"
@@ -31,7 +30,7 @@ SeparateChainingHt::SeparateChainingHt(uint32_t num_buckets, double load_thresho
 SeparateChainingHt::~SeparateChainingHt() {
     for (uint32_t i = 0; i < num_buckets; i++) {
         Node *current = bucket_array[i];
-        while (current != NULL) {
+        while (current != nullptr) {
             Node *next = current->next;
             delete current;
             current = next;
@@ -46,7 +45,7 @@ bool SeparateChainingHt::add_item(const void *key, uint32_t key_len, const void 
 
     uint32_t bucket_index = get_bucket_index(key, key_len, num_buckets);
     find_node(bucket_array, bucket_index, key, key_len);
-    if (found[0] != NULL) {
+    if (found[0] != nullptr) {
 
 #ifdef INSTRUMENT
         stats.add_time.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -76,7 +75,7 @@ void SeparateChainingHt::set_item(const void *key, uint32_t key_len, const void 
 
     uint32_t bucket_index = get_bucket_index(key, key_len, num_buckets);
     find_node(bucket_array, bucket_index, key, key_len);
-    if (found[0] != NULL) {
+    if (found[0] != nullptr) {
         found[0]->replace(key, key_len, value, value_len);
 
 #ifdef INSTRUMENT
@@ -112,8 +111,8 @@ const void *SeparateChainingHt::get_item(const void *key, uint32_t len) const {
             std::chrono::high_resolution_clock::now() - start));
 #endif
 
-    if (found[0] == NULL) {
-        return NULL;
+    if (found[0] == nullptr) {
+        return nullptr;
     }
     return found[0]->value;
 }
@@ -126,8 +125,8 @@ void SeparateChainingHt::delete_item(const void *key, uint32_t len) {
     uint32_t bucket_index = get_bucket_index(key, len, num_buckets);
     find_node(bucket_array, bucket_index, key, len);
 
-    if (found[0] != NULL) {
-        if (found[1] != NULL) {
+    if (found[0] != nullptr) {
+        if (found[1] != nullptr) {
             found[1]->next = found[0]->next;
         } else {
             bucket_array[bucket_index] = found[0]->next;
@@ -152,12 +151,12 @@ void SeparateChainingHt::expand_table() {
     Node **old_array = bucket_array;
     bucket_array = new Node *[num_buckets]();
     for (uint32_t i = 0; i < old_num; i++) {
-        Node *node_ptr = old_array[i], *next_ptr = node_ptr == NULL ? NULL : node_ptr->next;
-        while (node_ptr != NULL) {
+        Node *node_ptr = old_array[i], *next_ptr = node_ptr == nullptr ? nullptr : node_ptr->next;
+        while (node_ptr != nullptr) {
             uint32_t bucket_index = get_bucket_index(node_ptr->key, node_ptr->key_len, num_buckets);
             insert_node(bucket_index, node_ptr);
             node_ptr = next_ptr;
-            if (node_ptr != NULL) {
+            if (node_ptr != nullptr) {
                 next_ptr = next_ptr->next;
             }
         }
@@ -183,10 +182,10 @@ inline const uint32_t SeparateChainingHt::get_bucket_index(const void *key, uint
 }
 
 void SeparateChainingHt::find_node(Node **bucket_array, uint32_t bucket_index, const void *key, uint32_t len) {
-    found[0] = NULL;
-    found[1] = NULL;
+    found[0] = nullptr;
+    found[1] = nullptr;
     found[0] = bucket_array[bucket_index];
-    while (found[0] != NULL) {
+    while (found[0] != nullptr) {
         if (len == found[0]->key_len && memcmp(found[0]->key, key, len) == 0) {
             break;
         }
@@ -196,10 +195,10 @@ void SeparateChainingHt::find_node(Node **bucket_array, uint32_t bucket_index, c
 }
 
 uint16_t *SeparateChainingHt::get_bucket_sizes() {
-    uint16_t *bucket_sizes = new uint16_t[num_buckets]();
+    auto *bucket_sizes = new uint16_t[num_buckets]();
     for (uint32_t i = 0; i < num_buckets; i++) {
         Node *node_ptr = bucket_array[i];
-        while (node_ptr != NULL) {
+        while (node_ptr != nullptr) {
             bucket_sizes[i]++;
             node_ptr = node_ptr->next;
         }

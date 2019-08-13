@@ -5,7 +5,7 @@
 static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 char *random_string(uint8_t len) {
-    char *s = (char *) malloc(len);
+    auto *s = (char *) malloc(len);
     for (int i = 0; i < len; ++i) {
         s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
     }
