@@ -39,7 +39,6 @@ public:
             char current_char = p[p_index];
             Node* new_node = new Node(p_index + 1);
 
-            //
             for (auto current_node : *current_nodes) {
                 current_node->addPath(current_char, new_node);
             }
@@ -47,7 +46,9 @@ public:
             auto* new_current_nodes = new std::set<Node*>();
             new_current_nodes->insert(new_node);
 
-            //
+            // If the next character is a *, the current character is also linked to itself. Because * can be 0, the
+            // current frontier is added to the next iteration's frontier (this is recursive as if the previous
+            // character was also augmented with *, it would have been in the current frontier).
             if (p_index + 1 < p.size() && p[p_index + 1] == '*') {
                 new_node->addPath(current_char, new_node);
                 for (auto current_node : *current_nodes) {
@@ -98,7 +99,6 @@ public:
 
         while (s_index < s.size()) {
 
-            //
             if (positions->empty()) {
                 return false;
             }
@@ -106,7 +106,6 @@ public:
             char current_char = s[s_index];
             auto* new_positions = new std::set<Node*>();
 
-            //
             for (auto position : *positions) {
                 if (position->outPaths.find(current_char) != position->outPaths.end()) {
                     for (auto it : position->outPaths[current_char]) {
@@ -124,7 +123,6 @@ public:
             s_index++;
         }
 
-        //
         for (auto position : *positions) {
             if (terminals->find(position) != terminals->end()) {
                 return true;
