@@ -12,7 +12,7 @@ public:
         return strings;
     }
 
-    void print(const std::vector<std::string>& str) {
+    void printStringVector(const std::vector<std::string>& str) {
         for (std::string s : str) {
             std::cout << s << std::endl;
         }
@@ -48,5 +48,5 @@ private:
 
 int main() {
     Solution sol;
-    sol.print(sol.letterCombinations("23"));
+    sol.printStringVector(sol.letterCombinations("23"));
 }
