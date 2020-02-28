@@ -1,8 +1,8 @@
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 
 class FileIO {
-public:
+   public:
     FileIO(char *path, uint32_t max_size, uint32_t page_size) {
         this->max_size = max_size;
         this->page_size = page_size;
@@ -35,17 +35,20 @@ public:
     }
 
     void read() {
-        char in[max_size];
-        fseek(fp, 0, SEEK_SET);
-        fread(&in, max_size, 1, fp);
+        char in;
         for (uint32_t i = 0; i < max_size; i++) {
-            printf("%c", in[i]);
+            fseek(fp, i, SEEK_SET);
+            int check = fread(&in, 1, 1, fp);
+            if (check != 1) {
+                break;
+            }
+            printf("%c", in);
         }
         printf("\n");
         fseek(fp, current_position, SEEK_SET);
     }
 
-private:
+   private:
     uint32_t max_size;
     uint32_t page_size;
     FILE *fp;
@@ -53,7 +56,7 @@ private:
 };
 
 int main() {
-    auto *fio = new FileIO("C:/Users/Peng/tmp.test", 1 << 8, 1 << 3);
+    auto *fio = new FileIO("./tmp.test", 1 << 8, 1 << 3);
     fio->write("This is an initial test", 23);
     fio->write("This is an initial test2", 24);
     fio->read();
